@@ -13,7 +13,7 @@ public class jdbc {
 
     }
 
-    public static Connection getConnection(String db_name,String pass) {
+    public static Connection getConnection(String db_name, String pass) {
 
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -29,11 +29,12 @@ public class jdbc {
         }
         return con;
     }
-    public static void closeConnection(Connection con){
-        try{
+
+    public static void closeConnection(Connection con) {
+        try {
             con.close();
-        }catch (Exception e){
-            System.out.println(e);
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
     }
 
@@ -42,7 +43,7 @@ public class jdbc {
 
 
             Statement stmt = con.createStatement();
-
+            query += " order by id asc";
             ResultSet rs = stmt.executeQuery(query);
             ResultSetMetaData rsmd = rs.getMetaData();
 
@@ -68,7 +69,7 @@ public class jdbc {
 
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.toString());
         }
     }
 
@@ -79,15 +80,13 @@ public class jdbc {
 
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            ResultSetMetaData rsmd = rs.getMetaData();
+//            ResultSetMetaData rsmd = rs.getMetaData();
             rs.next();
             result = rs.getString(1);
 
 
-
-
         } catch (Exception e) {
-            System.out.println(e);
+
             result = e.toString();
         }
         return result;
@@ -98,11 +97,11 @@ public class jdbc {
 
 
             Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            stmt.executeQuery(query);
 
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.toString());
 
         }
 
