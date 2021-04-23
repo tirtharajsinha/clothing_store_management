@@ -19,37 +19,22 @@ public class Main {
             if (auth.login()) {
                 boolean inner = true;
                 while (inner) {
-                    System.out.println("\n-----------------");
-                    System.out.println("1. add item\n2. refill stock\n3. update price\n4. view on criterias\n5. create bill\n6. view bill\n7. Exchange\n8. logout");
-                    System.out.print("-----------------\nPleace select your action: ");
+                    System.out.println("------------------------");
+                    System.out.println("| 1. add item          |\n| 2. refill stock      |\n| 3. update price      |\n| 4. view on criterias |\n| 5. create bill       |\n| 6. view bill         |" +
+                            "\n| 7. Exchange          |\n| 8. register new user |\n| 9. logout            |");
+                    System.out.print("------------------------\n\nPleace select your action: ");
                     int option = scan.nextInt();
 
                     switch (option) {
-                        case 1:
-                            insert.add();
-                            break;
-                        case 2:
-                            insert.refill();
-                            break;
-                        case 3:
-                            insert.update_price();
-                            break;
-                        case 4:
-                            view.select();
-                            break;
-                        case 5:
-                            sales.createbill();
-                            break;
-                        case 6:
-                            sales.viewbill();
-                            break;
-                        case 7:
-                            sales.exchange();
-                            break;
-                        case 8:
-                            inner = false;
-                            break;
-
+                        case 1 -> insert.add();
+                        case 2 -> insert.refill();
+                        case 3 -> insert.update_price();
+                        case 4 -> view.select();
+                        case 5 -> sales.createbill();
+                        case 6 -> sales.viewbill();
+                        case 7 -> sales.exchange();
+                        case 8 -> auth.register();
+                        case 9 -> inner = false;
                     }
                 }
             }
@@ -69,8 +54,8 @@ class auth {
 
     Boolean login() {
 //        connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
 
 //      login logic starts here
         Scanner scan = new Scanner(System.in);
@@ -78,21 +63,53 @@ class auth {
         username = scan.nextLine();
         System.out.print("Enter your passward : ");
         password = scan.nextLine();
-        String pass = db.fetch("select password from admin where username='" + username + "'", con);
-        db.closeConnection(con);
+        String pass = jdbc.fetch("select password from admin where username='" + username + "'", con);
+
         if (pass.equals(password)) {
-            System.out.println("--------------------------\n| loging successful ('!') |\n--------------------------");
+            System.out.println("--------------------------\n| loging successful (∩▂∩) |\n--------------------------");
+            System.out.println("welcome back, " + jdbc.fetch("select name from admin where username='" + username + "'", con));
+            jdbc.closeConnection(con);
+
             return true;
         } else {
-            System.out.println("wrong password !! ");
+            System.out.println("wrong password ( ˃̥̥̥ ˑ̫ ˂̥̥̥ ) !!");
             return false;
         }
-
 
     }
 
     void register() {
-        System.out.println("register now");
+        Connection con = jdbc.getConnection("mydb", "oracle");
+        String status;
+        status = jdbc.fetch("select status from admin where username='" + username + "'", con);
+        if (status.equals("admin")) {
+            String newuser, newpass, newstatus, newname;
+//          sign-up logic starts here
+            System.out.println("registering new user ..........\n");
+            Scanner scan = new Scanner(System.in);
+            System.out.print("Enter new username : ");
+            newuser = scan.nextLine();
+            System.out.print("Enter new user full name : ");
+            newname = scan.nextLine();
+            System.out.print("Enter your new user user-status | admin/user | : ");
+            newstatus = scan.nextLine();
+            System.out.print("Enter new user passward : ");
+            newpass = scan.nextLine();
+
+            String available = jdbc.fetch("select * from admin where username='" + newuser + "'", con);
+            System.out.println("requested for ragistration..........");
+            if (available.equals("java.sql.SQLException: Invalid column index")) {
+                jdbc.manipulate(String.format("insert into admin values('%s','%s','%s','%s')", newuser, newpass, newstatus, newname), con);
+                System.out.println("ragistration successful");
+            } else {
+                System.out.println("request denied !!!!\n< User alrady exists >");
+            }
+
+
+        } else {
+            System.out.println("You are not admin,only Administrator can register a new user.");
+        }
+
     }
 
 
@@ -103,13 +120,13 @@ class insert {
 
     void add() {
         String name, catagory, type, size, dsc, color;
-        int stock, price;
+        int id, stock, price;
 
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
-        Scanner scan = new Scanner(System.in);
 
+        Connection con = jdbc.getConnection("mydb", "oracle");
+        Scanner scan = new Scanner(System.in);
+        System.out.println("adding new item to stock............\n");
 //      add logic start here
         System.out.print("Enter item name : ");
         name = scan.nextLine();
@@ -128,30 +145,31 @@ class insert {
         System.out.print("Enter item price : ");
         price = scan.nextInt();
         String query;
-        query = String.format("insert into clothes values(seq_person.nextval,'%s','%s','%s','%s','%s','%s',%d,%d)", name, catagory, type, size, dsc, color, stock, price);
-        db.manipulate(query, con);
-        db.con("select * from clothes order by id", con);
-        db.closeConnection(con);
+        id = Integer.parseInt(jdbc.fetch("select max(id) from clothes", con)) + 1;
+        query = String.format("insert into clothes values(%d,'%s','%s','%s','%s','%s','%s',%d,%d)", id, name, catagory, type, size, dsc, color, stock, price);
+        jdbc.manipulate(query, con);
+        jdbc.con("select * from clothes where id=" + id, con);
+        jdbc.closeConnection(con);
     }
 
     void refill() {
         Scanner scan = new Scanner(System.in);
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
 
 //      variable declaration
         int id, stock;
-
+        System.out.println("Refilling stock......\n");
         System.out.print("Enter item id : ");
         id = scan.nextInt();
         System.out.print("Enter item's stock addition: ");
         stock = scan.nextInt();
-        stock = Integer.parseInt(db.fetch("select stock from clothes where id=" + id, con)) + stock;
-        db.manipulate("update clothes set stock=" + stock + " where id=" + id, con);
-        db.con("select * from clothes where id=" + id, con);
+        stock = Integer.parseInt(jdbc.fetch("select stock from clothes where id=" + id, con)) + stock;
+        jdbc.manipulate("update clothes set stock=" + stock + " where id=" + id, con);
+        jdbc.con("select * from clothes where id=" + id, con);
 
-        db.closeConnection(con);
+        jdbc.closeConnection(con);
 
 
     }
@@ -159,20 +177,20 @@ class insert {
     void update_price() {
         Scanner scan = new Scanner(System.in);
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
 
 //      variable declaration
         int id, price;
-
+        System.out.println("Updating price............\n");
         System.out.print("Enter item id : ");
         id = scan.nextInt();
         System.out.print("Enter item's new price: ");
         price = scan.nextInt();
-        db.manipulate("update clothes set price=" + price + " where id=" + id, con);
-        db.con("select * from clothes where id=" + id, con);
+        jdbc.manipulate("update clothes set price=" + price + " where id=" + id, con);
+        jdbc.con("select * from clothes where id=" + id, con);
 
-        db.closeConnection(con);
+        jdbc.closeConnection(con);
 
 
     }
@@ -183,8 +201,8 @@ class view {
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
     void select() throws IOException {
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
 
         System.out.print("How many criteria you want to give ?:[ int ]: ");
         int n = scan.nextInt();
@@ -220,9 +238,9 @@ class sales {
     void createbill() {
         Scanner scan = new Scanner(System.in);
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
 
+        Connection con = jdbc.getConnection("mydb", "oracle");
+        System.out.println("Creating new bill.......\n");
 //      Create bill logic
         int quan, total, price;
         String id, got;
@@ -237,12 +255,12 @@ class sales {
             price = Integer.parseInt(got);
 
             total = price * quan;
-
+            int bill_id = Integer.parseInt(jdbc.fetch("select max(id) from sales", con)) + 1;
             System.out.println();
-            System.out.println("cloth_id : "+ id + " Quantity: " + quan + " Total Price : " + total);
-            String q = String.format("insert into sales values(seq_sales.nextval,%s,%d,%d,sysdate)", id, quan, total);
+            System.out.println("cloth_id : " + id + "| Quantity: " + quan + "| Total Price : " + total);
+            String q = String.format("insert into sales values(%d,%s,%d,%d,sysdate)", bill_id, id, quan, total);
             jdbc.manipulate(q, con);
-            int bill_id = Integer.parseInt(jdbc.fetch("select max(id) from sales", con));
+            jdbc.manipulate("update clothes set stock=stock-" + quan + " where id=" + id, con);
             System.out.println("your bill id is " + bill_id);
         }
         jdbc.closeConnection(con);
@@ -253,16 +271,15 @@ class sales {
     void exchange() {
         Scanner scan = new Scanner(System.in);
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
         System.out.print("Enter old bill id : ");
-        int Bill_id=scan.nextInt();
-        String ret=jdbc.fetch("select * from sales where id="+Bill_id,con);
-        if(ret.equals("java.sql.SQLException: Invalid column index")){
+        int Bill_id = scan.nextInt();
+        String ret = jdbc.fetch("select * from sales where id=" + Bill_id, con);
+        if (ret.equals("java.sql.SQLException: Invalid column index")) {
             System.out.println("invalid bill id, recheck id");
-        }
-        else{
-            int quan, total, price,clothes_id;
+        } else {
+            int quan, total, price, clothes_id;
             String got;
             System.out.print("Enter item_id : ");
             clothes_id = scan.nextInt();
@@ -277,8 +294,8 @@ class sales {
                 total = price * quan;
 
                 System.out.println();
-                System.out.println("cloth_id : "+clothes_id + " Quantity: " + quan + " Total Price : " + total);
-                String q = String.format("update sales set cloth_id=%d,quantity=%d,total=%d where id=%d", clothes_id, quan, total,Bill_id);
+                System.out.println("cloth_id : " + clothes_id + " Quantity: " + quan + " Total Price : " + total);
+                String q = String.format("update sales set cloth_id=%d,quantity=%d,total=%d where id=%d", clothes_id, quan, total, Bill_id);
                 jdbc.manipulate(q, con);
 
             }
@@ -290,8 +307,8 @@ class sales {
         Scanner scan = new Scanner(System.in);
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 //      connecting database
-        jdbc db = new jdbc();
-        Connection con = db.getConnection("mydb", "oracle");
+
+        Connection con = jdbc.getConnection("mydb", "oracle");
         System.out.print("filter bill by ->\n0. no filter \n1. bill_id \n2. cloth_id\n3. date \nselect[int] : ");
         int n = scan.nextInt();
         if (n == 0) {
