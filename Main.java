@@ -35,14 +35,21 @@ public class Main {
                         case 7 -> sales.exchange();
                         case 8 -> auth.register();
                         case 9 -> inner = false;
+                        case 92 -> {
+                            inner = false;
+                            repeater=false;
+                        }
                     }
                 }
             }
-            System.out.print("1. login\n2. exit\nSelect your action : ");
-            int prog = scan.nextInt();
-            if (prog == 2) {
-                repeater = false;
+            if(repeater){
+                System.out.print("1. login\n2. exit\nSelect your action : ");
+                int prog = scan.nextInt();
+                if (prog == 2) {
+                    repeater = false;
+                }
             }
+
         }
         System.out.println("see you later.");
     }
@@ -66,7 +73,7 @@ class auth {
         String pass = jdbc.fetch("select password from admin where username='" + username + "'", con);
 
         if (pass.equals(password)) {
-            System.out.println("--------------------------\n| loging successful (∩▂∩) |\n--------------------------");
+            System.out.println(" --------------------------\n| loging successful (∩▂∩) |\n --------------------------");
             System.out.println("welcome back, " + jdbc.fetch("select name from admin where username='" + username + "'", con));
             jdbc.closeConnection(con);
 
